@@ -1,0 +1,40 @@
+/* Zieex Framework - Base Styles */
+:root {
+  --zx-bg: #ffffff;
+  --zx-fg: #1a1a2e;
+  --zx-accent: #6366f1;
+  --zx-accent-hover: #4f46e5;
+  --zx-danger: #ef4444;
+  --zx-success: #22c55e;
+  --zx-warning: #f59e0b;
+  --zx-muted: #6b7280;
+  --zx-border: #e5e7eb;
+  --zx-radius: 6px;
+  --zx-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  font-family: var(--zx-font);
+  background: var(--zx-bg);
+  color: var(--zx-fg);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Flash messages */
+.flash { padding: 0.75rem 1rem; border-radius: var(--zx-radius); margin-bottom: 1rem; }
+.flash--success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+.flash--error   { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+.flash--warning { background: #fef9c3; color: #854d0e; border: 1px solid #fef08a; }
+.flash--info    { background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+
+/* Input error */
+.zx-input-error { border-color: var(--zx-danger) !important; outline-color: var(--zx-danger) !important; }
+
+/* Loader animation */
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);   opacity: 1; }
+}

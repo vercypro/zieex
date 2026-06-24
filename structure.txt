@@ -1,0 +1,89 @@
+A PHP FRAMEWORK named zieex
+
+A lightweight PHP framework with modern features and prevents default PHP reload on links, forms and buttons using our custom interaction.js (similar to livewire-inertia).
+
+FEATURES:
+
+lightweight
+MVC Support
+REST API SupportDependency Injection
+Query Builder
+Middleware
+Authentication
+CLI Commands
+Modular architecture
+Event system
+Websocket
+DB Transactions
+Security by default - requires user to login at installation like wordpress. select db type, name, etc and also set up admin username, email and password. Also auto CSRF verification on all POST request
+Support .env variables
+Template support :: Blade-like system named index.ze.php
+Multi database support - MySQL, PostgreSQL, MongoDB, SQLite, JWT, Firebase.
+Support multiple mail options (mail(), SMTP, API, resend etc). Can use on different occasions like resend for user auth, api for notifications, smtp for bulk emails and mail() for transactional emails.
+
+Has uuid by default on users table
+Uses Router::get('/', [HomeController::class, 'index'])
+Zero dependency, raw SMTP socket (for sending emails)
+In auth system, has hash and veryfy by default. Use BCRYPT
+In /routes folder should contain /web/index.php (For websites) and /api/index.php (For API and mobile apps).
+Simplify the installer - Instead of a 4-step browser wizard, consider a single page form — all fields on one page, grouped into sections. WordPress does 4 steps but it feels unnecessary for a developer framework. One page is faster and less code.
+
+env('APP_NAME', 'default')
+view('home', $data)
+redirect('/login')
+response()->json($data)
+base_path('storage/logs')
+config('app.name')
+dd($variable)
+
+Request validation built in
+eg. $validated = $request->validate([
+    'email'    => 'required|email',
+    'password' => 'required|min:8',
+    'name'     => 'required|max:255',
+]);
+
+Flash messages eg flash('success', 'Profile updated.');
+
+.zx.php cache should be disabled in local env automatically
+Middleware should support parameters eg Router::get('/admin', [AdminController::class, 'index'])->middleware('auth:jwt', 'role:admin');
+CSRF auto-validation on all POST
+Route groups 
+Resource routes 
+eg Router::resource('/api/users', UserController::class);
+
+// Automatically registers:
+// GET    /api/users          → index()
+// GET    /api/users/{id}     → show()
+// POST   /api/users          → store()
+// PUT    /api/users/{id}     → update()
+// DELETE /api/users/{id}     → destroy()
+
+Named routes
+Request validation should return typed data
+Response macros for API consistency
+Logging built in
+eg. Log::info('User logged in', ['user_id' => $user->id]);
+Log::error('Payment failed', ['order' => $orderId]);
+Log::warning('Rate limit approaching', ['ip' => $ip]);
+
+Rate limiting per route eg Router::post('/api/auth/login', [AuthController::class, 'login'])->rateLimit(5, 60);
+
+Then the error handling - on production and live server should be user and developer friendly like Laravel
+
+BEFORE BUILDING THE PROJECT, ANY OTHER SUGGESTION?
+
+OTHER POINTS TO consider
+1. Entry point: index.php should be the main entry point because I plan to use shared hosting when going live and I do not have terminal access on shared hosting. This way, I can just put the files in the public_html folder and it should work.
+2. Directory structure: The directory structure should be organized and easy to navigate. 
+3. Must be lightweight. So avoid unnecessary bloat and keep it minimal. Project size should be less than 3MB and 400 files, but it should be able to support all the features listed above.
+4. Support PHP 8.2 and above. This is a must. Older PHP versions are disallowed
+5. Use Composer for package management. This is a must.
+6. No need for docker compose or dockerfile since it will be deployed on shared hosting and there is no terminal access. But it should be easy to dockerize if the need arises in the future.
+7. The installer should be minimal and at the same time beautiful and user-friendly. It should be a single page form - all fields on one page, grouped into sections. It should be a step-by-step process with clear instructions and validation messages. It should also be secure and prevent any form of abuse. It should also have a progress bar to show the user how far they are in the installation process. It should also have a summary page at the end to show the user what was installed and what was not installed. This is not like Laravel installer which is just a terminal script. This should be both a web-based installer that runs in the browser and a terminal based installer.
+8. The default database support should be MySQL. Can change the settings via .env file.
+9.  The AJAX/HTMX-style/Livewire style of our view is by default. That is page reload will not happen unless user triggers it using the browser back/forward buttons. So, all links and forms and buttons should be AJAX-enabled by default.
+10. For our noreload, I will like to call it either interaction.js and LiveComponent
+
+
+Create the .zip file

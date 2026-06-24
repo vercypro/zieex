@@ -1,0 +1,8 @@
+/vendor/
+/.env
+/storage/logs/*.log
+/storage/cache/*
+/install/.installed
+*.sqlite
+.DS_Store
+Thumbs.db

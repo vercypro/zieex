@@ -1,0 +1,33 @@
+{
+    "name": "zieex/framework",
+    "description": "A lightweight AJAX-first PHP framework with MVC, REST API, and modern features",
+    "type": "project",
+    "license": "MIT",
+    "keywords": [
+        "php",
+        "framework",
+        "mvc",
+        "rest",
+        "ajax"
+    ],
+    "homepage": "https://github.com/yourname/zieex",
+    "authors": [
+        {
+            "name": "Vercy",
+            "email": "support@vercy.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "Zieex\\": "core/"
+        },
+        "files": [
+            "core/helpers.php"
+        ]
+    },
+    "minimum-stability": "stable"
+}

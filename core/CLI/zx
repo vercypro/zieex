@@ -1,0 +1,203 @@
+#!/usr/bin/env php
+<?php
+declare(strict_types=1);
+
+define('BASE_PATH', dirname(__DIR__));
+
+if (!file_exists(BASE_PATH . '/vendor/autoload.php')) {
+    echo "Run 'composer install' first.\n";
+    exit(1);
+}
+
+require BASE_PATH . '/vendor/autoload.php';
+\Zieex\Env::load(BASE_PATH . '/.env');
+
+$command = $argv[1] ?? 'help';
+$args    = array_slice($argv, 2);
+
+$commands = [
+    'make:controller' => fn($a) => makeController($a[0] ?? null),
+    'make:model'      => fn($a) => makeModel($a[0] ?? null),
+    'make:middleware' => fn($a) => makeMiddleware($a[0] ?? null),
+    'make:migration'  => fn($a) => makeMigration($a[0] ?? null),
+    'migrate'         => fn($a) => runMigrations(),
+    'cache:clear'     => fn($a) => clearCache(),
+    'key:generate'    => fn($a) => generateKey(),
+    'serve'           => fn($a) => serve($a),
+    'help'            => fn($a) => showHelp(),
+];
+
+if (isset($commands[$command])) {
+    $commands[$command]($args);
+} else {
+    echo "\033[31mUnknown command: {$command}\033[0m\n";
+    showHelp();
+}
+
+function makeController(?string $name): void {
+    if (!$name) { echo "Usage: zx make:controller ControllerName\n"; return; }
+    $path = BASE_PATH . "/app/Controllers/{$name}.php";
+    if (file_exists($path)) { echo "Controller already exists.\n"; return; }
+    $stub = <<<PHP
+<?php
+declare(strict_types=1);
+
+namespace App\Controllers;
+
+use Zieex\Http\Controller;
+use Zieex\Http\Request;
+use Zieex\Http\Response;
+
+class {$name} extends Controller
+{
+    public function index(Request \$request): Response
+    {
+        return \$this->view('home', []);
+    }
+}
+PHP;
+    file_put_contents($path, $stub);
+    echo "\033[32m✔ Controller created: app/Controllers/{$name}.php\033[0m\n";
+}
+
+function makeModel(?string $name): void {
+    if (!$name) { echo "Usage: zx make:model ModelName\n"; return; }
+    $path = BASE_PATH . "/app/Models/{$name}.php";
+    if (file_exists($path)) { echo "Model already exists.\n"; return; }
+    $table = strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $name)) . 's';
+    $stub = <<<PHP
+<?php
+declare(strict_types=1);
+
+namespace App\Models;
+
+use Zieex\Database\Model;
+
+class {$name} extends Model
+{
+    protected static string \$table = '{$table}';
+}
+PHP;
+    file_put_contents($path, $stub);
+    echo "\033[32m✔ Model created: app/Models/{$name}.php\033[0m\n";
+}
+
+function makeMiddleware(?string $name): void {
+    if (!$name) { echo "Usage: zx make:middleware MiddlewareName\n"; return; }
+    $path = BASE_PATH . "/app/Middleware/{$name}.php";
+    if (file_exists($path)) { echo "Middleware already exists.\n"; return; }
+    $stub = <<<PHP
+<?php
+declare(strict_types=1);
+
+namespace App\Middleware;
+
+use Zieex\Http\Request;
+use Zieex\Http\Response;
+
+class {$name}
+{
+    public function __construct(private ?string \$params = null) {}
+
+    public function handle(Request \$request, callable \$next): Response
+    {
+        // Your logic here
+        return \$next();
+    }
+}
+PHP;
+    file_put_contents($path, $stub);
+    echo "\033[32m✔ Middleware created: app/Middleware/{$name}.php\033[0m\n";
+}
+
+function makeMigration(?string $name): void {
+    if (!$name) { echo "Usage: zx make:migration migration_name\n"; return; }
+    $dir  = BASE_PATH . '/database/migrations';
+    if (!is_dir($dir)) mkdir($dir, 0755, true);
+    $file = $dir . '/' . date('Y_m_d_His') . "_{$name}.php";
+    $stub = <<<PHP
+<?php
+use Zieex\Database\DB;
+
+return new class {
+    public function up(): void
+    {
+        DB::raw("CREATE TABLE IF NOT EXISTS example (
+            id CHAR(36) PRIMARY KEY,
+            created_at DATETIME,
+            updated_at DATETIME
+        )");
+    }
+
+    public function down(): void
+    {
+        DB::raw("DROP TABLE IF EXISTS example");
+    }
+};
+PHP;
+    file_put_contents($file, $stub);
+    echo "\033[32m✔ Migration created: database/migrations/{$name}\033[0m\n";
+}
+
+function runMigrations(): void {
+    $dir = BASE_PATH . '/database/migrations';
+    if (!is_dir($dir)) { echo "No migrations directory.\n"; return; }
+
+    $files = glob($dir . '/*.php');
+    sort($files);
+
+    foreach ($files as $file) {
+        $migration = require $file;
+        $migration->up();
+        echo "\033[32m✔ Migrated: " . basename($file) . "\033[0m\n";
+    }
+    echo "Done.\n";
+}
+
+function clearCache(): void {
+    $dir = BASE_PATH . '/storage/cache';
+    foreach (glob($dir . '/*') as $file) {
+        if (is_file($file)) unlink($file);
+    }
+    echo "\033[32m✔ Cache cleared.\033[0m\n";
+}
+
+function generateKey(): void {
+    $key  = bin2hex(random_bytes(32));
+    $env  = BASE_PATH . '/.env';
+    if (file_exists($env)) {
+        $content = file_get_contents($env);
+        $content = preg_replace('/^APP_KEY=.*/m', "APP_KEY={$key}", $content);
+        file_put_contents($env, $content);
+    }
+    echo "\033[32m✔ APP_KEY set: {$key}\033[0m\n";
+}
+
+function serve(array $args): void {
+    $host = $args[0] ?? 'localhost:8000';
+    echo "\033[36mZieex dev server running at http://{$host}\033[0m\n";
+    passthru("php -S {$host} " . BASE_PATH . "/index.php");
+}
+
+function showHelp(): void {
+    echo <<<HELP
+
+\033[36m╔══════════════════════════════╗
+║     Zieex CLI (zx)          ║
+╚══════════════════════════════╝\033[0m
+
+\033[33mUsage:\033[0m zx <command> [arguments]
+
+\033[33mAvailable commands:\033[0m
+  make:controller <Name>     Create a new controller
+  make:model      <Name>     Create a new model
+  make:middleware <Name>     Create a new middleware
+  make:migration  <name>     Create a new migration
+  migrate                    Run all migrations
+  cache:clear                Clear application cache
+  key:generate               Generate APP_KEY in .env
+  serve [host:port]          Start dev server (default: localhost:8000)
+  help                       Show this help
+
+HELP;
+}
